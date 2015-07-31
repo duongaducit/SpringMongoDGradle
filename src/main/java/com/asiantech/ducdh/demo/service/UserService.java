@@ -12,7 +12,9 @@ public interface UserService {
 	
 	User getUserByEmail(String email);
 
-	List<User> deleteUser(String email);
+	boolean deleteUser(String email);
 
-	User updateUser(User user);
+	boolean updateUser(User user);
+	
+	boolean checkUser(User user);
 }

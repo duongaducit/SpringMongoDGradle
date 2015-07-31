@@ -4,11 +4,11 @@ import org.springframework.data.annotation.Id;
 
 public class User {
 
-	
-	
+	@Id
+	private String id;
+
 	private String firstName;
 	private String lastName;
-	@Id
 	private String email;
 	private String password;
 
@@ -43,7 +43,6 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	
 
 	public User(String firstName, String lastName, String email, String password) {
 		super();
@@ -57,5 +56,5 @@ public class User {
 		super();
 		// TODO Auto-generated constructor stub
 	}
-	
+
 }

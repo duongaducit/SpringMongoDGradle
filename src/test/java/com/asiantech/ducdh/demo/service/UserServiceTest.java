@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,10 +12,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import com.asiantech.ducdh.demo.entity.User;
 import com.asiantech.ducdh.demo.repository.UserRepository;
@@ -26,7 +23,13 @@ import com.asiantech.ducdh.demo.service.impl.UserServiceImpl;
 public class UserServiceTest {
 	
 	@InjectMocks
-	private UserServiceImpl userServiceImpl;
+	private UserService userService = new UserServiceImpl();
+
+	@Mock
+	private UserRepository userRepository;
+	
+	private User userOutput;
+	private List<User> listOutput;
 	
 	private List<User> createListUser(int length) {
 		List<User> quesMap = new ArrayList<>();
@@ -42,104 +45,51 @@ public class UserServiceTest {
 		return user;
 	}
 	
-	@Spy
-	private List<User> listMongo = createListUser(10);
-	
-	@Mock
-	private UserRepository userDAO;
-	
-	
 	@Before
-	public void setup(){
-		//userDAO save
-		Mockito.when(userDAO.save(Mockito.any(User.class))).then(new Answer<User>() {
-			public User answer(InvocationOnMock invocation)
-					throws Throwable {
-
-				User user = (User) invocation.getArguments()[0];
-				listMongo.add(user);
-				return user;
-				}
-		});
+	public void setUp() throws Exception {
+		MockitoAnnotations.initMocks(this);
 		
-		//userDao delete
-		Mockito.doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				User user = (User) invocation.getArguments()[0];
-				listMongo.remove(user);
-				return null;
-			}
-		}).when(userDAO).delete(Mockito.any(User.class));
-		//userDAO getUser
+		userOutput = createUser(1);
+		listOutput = createListUser(10);
+		Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(userOutput);
 		
-		Mockito.when(userDAO.findAll()).then(new Answer<List<User>>() {
-			@Override
-			public List<User> answer(InvocationOnMock invocation) throws Throwable {
-				return listMongo;
-			}
-		});
+		Mockito.when(userRepository.findAll()).thenReturn(listOutput);
 		
-		//userDAO getUserByEmail
-		Mockito.when(userDAO.findByEmail(Mockito.anyString())).then(new Answer<User>(){
-
-			@Override
-			public User answer(InvocationOnMock invocation) throws Throwable {
-				String email = (String) invocation.getArguments()[0];
-				Optional<User> user = listMongo.stream().filter(us -> email.equals(us.getEmail())).findFirst();
-				if (user.isPresent()){
-					User rs = user.get();
-				return rs;
-				}
-				else{
-					return null;
-				}
-			}
-			
-		});
+		Mockito.when(userRepository.findByEmail(Mockito.anyString())).thenReturn(userOutput);
+		
+		Mockito.stubVoid(userRepository).toReturn().on().delete(Mockito.any(User.class));
 	}
 
 	@Test
 	public void testSave() {
-		User user = createUser(12);
-		user = userServiceImpl.save(user);
-		assertNotNull(user);
-		Assert.assertTrue("".equals(user.getPassword()));
+		User user = createUser(1);
+		user = userService.save(user);
+		Assert.assertNotNull(user);
 	}
 
 	@Test
 	public void testGetUser() {
-		List<User> list = userServiceImpl.getUser();
-		Assert.assertTrue(check(list) && list.size() == 10);
+		List<User> list = userService.getUser();
+		Assert.assertEquals(list.size(), 10);
 	}
 
 	@Test
 	public void testGetUserByEmail() {
-		User user = userServiceImpl.getUserByEmail("email_1");
-		Assert.assertTrue((user != null) && "".equals(user.getPassword()));
+		User user = userService.getUserByEmail("email_2");
+		Assert.assertNotNull(user);
 	}
-	
+
 	@Test
-	public void testDeleteUser(){
-		List<User> list = userServiceImpl.deleteUser("email_1");
-		Assert.assertTrue(check(list) && list.size() == 9);
+	public void testDeleteUser() {
+		userService.deleteUser("email_1");
+		System.out.println("Finished the delete, no exception thrown");
+
 	}
-	
+
 	@Test
-	public void testUpdateUser(){
-		User user = new User("fn_1", "ls_2", "email_3", "password_4");
-		user = userServiceImpl.updateUser(user);
-		assertNotNull(user);
-		Assert.assertTrue("ls_2".equals(userServiceImpl.getUserByEmail("email_3").getLastName()));
-		Assert.assertTrue(listMongo.size() == 10);
-	}
-	
-	boolean check(List<User> list){
-		for (User user:list){
-			if (!"".equals(user.getPassword())){
-				return false;
-			}
-		}
-		return true;
+	public void testUpdateUser() {
+		User user = createUser(1);
+		Assert.assertTrue(userService.updateUser(user));
 	}
 
 }

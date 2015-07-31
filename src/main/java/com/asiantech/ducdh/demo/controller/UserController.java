@@ -4,7 +4,9 @@ import java.util.List;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +25,7 @@ public class UserController {
         return userService.getUser();
     }
     
-    @RequestMapping(value = "/add")
+    @RequestMapping(value = "/add",method = RequestMethod.POST)
     public User addUser(@RequestParam(value = "firstName")String firstName,
     		@RequestParam(value = "lastName")String lastName,
     		@RequestParam(value = "email")String email,
@@ -37,13 +39,13 @@ public class UserController {
     	return userService.getUserByEmail(email);
     }
     
-    @RequestMapping("/delete")
-    public List<User> delete(@RequestParam(value = "email")String email){
+    @RequestMapping(value = "/delete",method = RequestMethod.POST)
+    public boolean delete(@RequestParam(value = "email")String email){
     	return userService.deleteUser(email);
     }
     
-    @RequestMapping("/update")
-    public User update(@RequestParam(value = "firstName")String firstName,
+    @RequestMapping(value = "/update",method = RequestMethod.POST)
+    public boolean update(@RequestParam(value = "firstName")String firstName,
     		@RequestParam(value = "lastName")String lastName,
     		@RequestParam(value = "email")String email,
     		@RequestParam(value = "password")String password){

@@ -1,9 +1,10 @@
 package com.asiantech.ducdh.demo.service.impl;
 
+import java.util.Collection;
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.Id;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,47 +17,57 @@ import com.asiantech.ducdh.demo.service.UserService;
 public class UserServiceImpl implements UserService{
 
 	@Autowired
-	private UserRepository userRepository;
+	private UserRepository userRespository;
 	
-	public User save(User user){
-		User us = getUserByEmail(user.getEmail());
+	@Override
+	public User save(User user) {
+		if (user == null) throw new IllegalAccessError("User not null");
+		User us = userRespository.findByEmail(user.getEmail());
 		if (us == null){
-		userRepository.save(user);
-		user.setPassword("");
-		return user;
+			userRespository.save(user);
+			user.setPassword("");
 		}
-		return null;
+		return user;
 	}
-	
-	public List<User> getUser(){
-		
-		List<User> list = userRepository.findAll();
+
+	@Override
+	public List<User> getUser() {
+		List<User> list = userRespository.findAll();
 		list.forEach(us -> us.setPassword(""));
 		return list;
 	}
-	
-	public User getUserByEmail(String email){
-		User user =  userRepository.findByEmail(email);
-		if (user == null) return null;
+
+	@Override
+	public User getUserByEmail(String email) {
+		User user = userRespository.findByEmail(email);
 		user.setPassword("");
 		return user;
 	}
 
 	@Override
-	public List<User> deleteUser(String email) {
-		if (getUserByEmail(email) != null){
-			userRepository.delete(userRepository.findByEmail(email));
-		}
-		return getUser();
+	public boolean deleteUser(String email) {
+		User user = userRespository.findByEmail(email);
+		if (user == null)
+		return false;
+		userRespository.delete(user);
+		return true;
 	}
 
 	@Override
-	public User updateUser(User user) {
-		if (getUserByEmail(user.getEmail()) == null)
-		return null;
-		else{
-			userRepository.delete(userRepository.findByEmail(user.getEmail()));
-			return save(user);
+	public boolean updateUser(User user) {
+		if (user == null) throw new IllegalAccessError("User not null");
+		User us = userRespository.findByEmail(user.getEmail());
+		if (us != null){
+			userRespository.save(user);
+			return true;
 		}
+		return false;
 	}
+
+	@Override
+	public boolean checkUser(User user) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
